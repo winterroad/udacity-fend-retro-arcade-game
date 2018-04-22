@@ -1,5 +1,5 @@
 /* Overlay and pop up window code has been copied and edited from my previous
-project: Mememory Game */
+project: Memory Game */
 
 'use strict';
 
@@ -19,6 +19,7 @@ Player.prototype.updateScores = function(){
 };
 
 Player.prototype.updateLives = function(){
+  /* check how many lives player has left and update the  page */
   switch(player.lives){
     case 3:
     LIVES.textContent ="  ❤ ❤ ❤  ";
@@ -29,6 +30,7 @@ Player.prototype.updateLives = function(){
     case 1:
     LIVES.textContent ="  ❤  ";
     break;
+    /* Game over */
     default:
     LIVES.textContent ="  ";
     /*remove all enemies by emptying the array*/
@@ -69,11 +71,12 @@ function createEnemies(num){
   let speed, x, y;
   /* for loop runs as many times there should be enemies (num)*/
   for(let i = 0; i < num; i++){
-    /*create randoms returns speed, x and y and they are set in one go as return
-    statement returns an array*/
+    /* create randoms: returns speed, x and y and they are set in one go as return
+    statement returns an array */
     [speed, x, y] = createRandoms();
     /* lets use the random values to create an enemy*/
     let enemy = new Enemy(speed, x, y);
+    /* Add new enemy to the allEnemies array */
     allEnemies.push(enemy);
   }
   return allEnemies;
@@ -94,19 +97,20 @@ function createRandoms(){
 /*Update the enemy's position
 Parameter: dt, a time delta between ticks*/
 Enemy.prototype.update = function(dt){
-    /*if the x is not over border, then add dt adjusted length that enemy has traveledd in its speed*/
+    /*if the x is not over border, then add dt adjusted length that enemy has traveled in its speed*/
     if(this.x < 500){
-    this.x += (this.speed * dt);
+      this.x += (this.speed * dt);
     }
     //check for going off canvas, "reset" enemy with new x and y inside the borders.
     if(this.x >= 500){
       [this.speed, this.x, this.y] = createRandoms();
     }
     /* check collision*/
-    /* Is the player approximately at the same loc at y-axis:*/
+    /* Is the player approximately at the same loc at y-axis: */
       if(Math.abs(this.y - player.y) < 50){
-        /*Is the player aprox. at the same loc at the x-axis*/
+        /* Is the player aprox. at the same loc at the x-axis */
         if(Math.abs(this.x - player. x) < 50){
+          /* player is in enemy's "hitzone" -> crash */
           player.crash();
         }
       }
@@ -117,15 +121,18 @@ Enemy.prototype.render = function(){
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+/* Player constructor */
 function Player(avatar){
     this.x = 200;
     this.y = 400;
-    this.sprite = avatar; /*avatar*/
+    this.sprite = avatar;
     //For the "scoreBoard"
     this.lives = 3;
     this.points = 0;
 }
 
+/* Handles when player and enemy has "crashed", 1 life is taken,
+player starts from start position if there is lives left */
 Player.prototype.crash = function(){
   player.lives -= 1;
   player.updateLives();
@@ -133,7 +140,7 @@ Player.prototype.crash = function(){
     player.startPos();
   }
 };
-
+/* player's start position */
 Player.prototype.startPos = function(){
   this.x = 200;
   this.y = 400;
@@ -193,7 +200,7 @@ Player.prototype.handleInput  = function(key){
         /* player goes 50px down */
         this.y +=50;
         break;
-
+    /* If something strange happens. */
     default:
         console.log("Something strange happened.");
     }
@@ -213,7 +220,7 @@ document.addEventListener('keyup', function(e) {
 });
 
 function showPopUp(){
-  //When function called show moda/pop up and overlay by adding class that has visibility: visible.
+  //When function called show modal/pop up and overlay by adding class that has visibility: visible.
   if(POPUP.classList){
     POPUP.classList.add("showPopUp");
     OVERLAY.classList.add("showPopUp");
@@ -225,6 +232,6 @@ function showPopUp(){
 function doPlayAgain(){
   POPUP.classList.remove("showPopUp");
   OVERLAY.classList.remove("showPopUp");
-  player = null;
+  /* initialize game: new player, new enemies and score values */
   initialize("images/char-cat-girl.png");
 }

@@ -1,13 +1,58 @@
+/* Overlay and pop up window code has been copied and edited from my previous
+project: Mememory Game */
+
 'use strict';
 
-let points = document.getElementById("points");
-
+const POINTS = document.getElementsByClassName("points");
+const LIVES = document.getElementById("hearts");
+const POPUP = document.querySelector(".popUpWindow");
+const OVERLAY = document.querySelector(".overlay");
+const PLAYAGAINMODAL = document.getElementById("playAgain");
 /* allEnemies array, that will be filled with the enemies objects*/
-var allEnemies = [];
-/*populate allEnemies*/
-allEnemies = createEnemies(5);
-/*create a player object*/
-var player = new Player();
+let allEnemies = [];
+let player;
+
+Player.prototype.updateScores = function(){
+  /* getElementsByClassName returns a nodeList object, access both point-showing elements by index*/
+  POINTS[0].textContent = this.points;
+  POINTS[1].textContent = this.points;
+};
+
+Player.prototype.updateLives = function(){
+  switch(player.lives){
+    case 3:
+    LIVES.textContent ="  ❤ ❤ ❤  ";
+    break;
+    case 2:
+    LIVES.textContent ="  ❤ ❤  ";
+    break;
+    case 1:
+    LIVES.textContent ="  ❤  ";
+    break;
+    default:
+    LIVES.textContent ="  ";
+    /*remove all enemies by emptying the array*/
+    allEnemies = [];
+    /* open pop up */
+    showPopUp();
+    break;
+  /* game over function, overlay, enemy empty, player null*/
+  }
+};
+
+/*TODO: Maybe a game class*/
+
+/* TODO: Player can choose the avatar him/herself*/
+initialize("images/char-cat-girl.png");
+
+function initialize(avatar){
+  /*populate allEnemies*/
+  allEnemies = createEnemies(5);
+  /*create a player object*/
+  player = new Player(avatar);
+  player.updateScores();
+  player.updateLives();
+}
 
 /* enemy constructor*/
 function Enemy(speed, x, y){
@@ -19,12 +64,13 @@ function Enemy(speed, x, y){
   this.sprite = 'images/enemy-bug.png';
 }
 
-/*function that calls the enemy constructor*/
-function createEnemies(num) {
+/* function that calls the enemy constructor with how many enemies should created (num) */
+function createEnemies(num){
   let speed, x, y;
   /* for loop runs as many times there should be enemies (num)*/
   for(let i = 0; i < num; i++){
-    /*create randoms returns speed, x and y and they are set in one go*/
+    /*create randoms returns speed, x and y and they are set in one go as return
+    statement returns an array*/
     [speed, x, y] = createRandoms();
     /* lets use the random values to create an enemy*/
     let enemy = new Enemy(speed, x, y);
@@ -38,101 +84,121 @@ function createRandoms(){
   /* x will be negative, so the enemy does not show up immediately*/
   let randomX = -50 - Math.floor(Math.random()*300);
   /* we do not want enemies on the grass or on the "river"*/
-  let randomY = 50 + Math.floor(Math.random() * 150);
-  /* speed should be over 50, but not over 450*/
-  let randomSpeed = 50 + Math.floor(Math.random()*400);
+  let randomY = 50 + Math.floor(Math.random() * 175);
+  /* speed should be over 50, but not over 400*/
+  let randomSpeed = 50 + Math.floor(Math.random()*350);
   /*when returned in array, values can be set directly to multiple variables, when they are in array*/
   return [randomSpeed, randomX, randomY];
 }
 
 /*Update the enemy's position
 Parameter: dt, a time delta between ticks*/
-Enemy.prototype.update = function(dt) {
-
+Enemy.prototype.update = function(dt){
+    /*if the x is not over border, then add dt adjusted length that enemy has traveledd in its speed*/
     if(this.x < 500){
-    this.x = this.x + (this.speed * dt);
-  }
+    this.x += (this.speed * dt);
+    }
     //check for going off canvas, "reset" enemy with new x and y inside the borders.
-    if(this.x > 500){
+    if(this.x >= 500){
       [this.speed, this.x, this.y] = createRandoms();
     }
     /* check collision*/
-}
+    /* Is the player approximately at the same loc at y-axis:*/
+      if(Math.abs(this.y - player.y) < 50){
+        /*Is the player aprox. at the same loc at the x-axis*/
+        if(Math.abs(this.x - player. x) < 50){
+          player.crash();
+        }
+      }
+};
 
 /* Draw the enemy on the screen */
-Enemy.prototype.render = function() {
+Enemy.prototype.render = function(){
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-}
+};
 
-
-function Player(){
-
+function Player(avatar){
     this.x = 200;
     this.y = 400;
-    this.sprite = 'images/char-cat-girl.png';
+    this.sprite = avatar; /*avatar*/
     //For the "scoreBoard"
     this.lives = 3;
     this.points = 0;
 }
 
+Player.prototype.crash = function(){
+  player.lives -= 1;
+  player.updateLives();
+  if(player.lives > 0){
+    player.startPos();
+  }
+};
+
+Player.prototype.startPos = function(){
+  this.x = 200;
+  this.y = 400;
+};
+
 Player.prototype.update = function(){
-
-    if (this.x > 450){
-      this.x = 400;
+    /*Following are "border" checks*/
+    if (this.x > 415){
+      this.x = 415;
     }
-
-    else if(this.x < 0){
-      this.x = 0;
-    }
-
-    else if(this.y > 440) {
-      this.y = 440;
-    }
-
-    else if(this.y < 0) {
-      this.y = 0;
-    }
-
+      else if(this.x < -15){
+        this.x = -15;
+      }
+        else if(this.y > 440) {
+          this.y = 440;
+        }
+          else if(this.y < 0) {
+            this.y = 0;
+          }
+    /*If the player reaches the river.*/
     if(this.y <= 0){
+      /*Player back to the start position*/
       this.x = 200;
       this.y = 400;
-      this.points+=200;
+      this.points += 200;
       this.updateScores();
     }
-}
+};
 
-Player.prototype.render  = function(){
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-}
+Player.prototype.render = function(){
+  ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
 
+/* Function get a key as a parametr and moves player accordingly. */
 Player.prototype.handleInput  = function(key){
+  /* Check if the game still continues */
+  if(player.lives > 0){
+    /* Compare the key input and move player accordingly */
+    switch(key){
 
-switch(key){
+    case "left":
+        /* player goes 100px left */
+        this.x -= 100;
+        break;
 
-case "left":
-    this.x -= 100;
-    break;
+    case "right":
+        /* player goes 100px right */
+        this.x += 100;
+        break;
 
-case "right":
-    this.x += 100;
-    break;
+    case "up":
+        /* player goes 50px up */
+        this.y -= 50;
+        break;
 
-case "up":
-    this.y -= 50;
-    break;
+    case "down":
+        /* player goes 50px down */
+        this.y +=50;
+        break;
 
-case "down":
-    this.y +=50;
-    break;
-
-default:
-    console.log("Something strange happened.");
-}
-}
-
-Player.prototype.updateScores = function(){
-    points.textContent = this.points;
-}
+    default:
+        console.log("Something strange happened.");
+    }
+  }
+};
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -143,6 +209,22 @@ document.addEventListener('keyup', function(e) {
         39: 'right',
         40: 'down'
     };
-
     player.handleInput(allowedKeys[e.keyCode]);
 });
+
+function showPopUp(){
+  //When function called show moda/pop up and overlay by adding class that has visibility: visible.
+  if(POPUP.classList){
+    POPUP.classList.add("showPopUp");
+    OVERLAY.classList.add("showPopUp");
+  //Event listeners for playAgain button.
+  PLAYAGAINMODAL.addEventListener('click', doPlayAgain);
+  }
+}
+//This removes the class that gives visibility to pop up/modal and overlay
+function doPlayAgain(){
+  POPUP.classList.remove("showPopUp");
+  OVERLAY.classList.remove("showPopUp");
+  player = null;
+  initialize("images/char-cat-girl.png");
+}

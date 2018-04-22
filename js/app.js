@@ -73,7 +73,7 @@ function Player(){
     //For the "scoreBoard"
     this.lives = 3;
     this.points = 0;
-};
+}
 
 Player.prototype.update = function(){
 
@@ -99,7 +99,7 @@ Player.prototype.update = function(){
       this.points+=200;
       this.updateScores();
     }
-};
+}
 
 Player.prototype.render  = function(){
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
@@ -128,7 +128,7 @@ case "down":
 default:
     console.log("Something strange happened.");
 }
-};
+}
 
 Player.prototype.updateScores = function(){
     points.textContent = this.points;

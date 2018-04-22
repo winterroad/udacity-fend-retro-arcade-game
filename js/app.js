@@ -1,83 +1,74 @@
 'use strict';
 
-/* Game object literal that includes the "rules" (=constants) of the game */
-let game = {
-  minSpeed: 75,
-  maxSpeed: 600,
-  borderLeft: 0,
-  borderRight: 600,
-  borderUp: 0,
-  borderDown: 500,
-  enemyYMin: 100,
-  enemyYMax: 350,
-  winY: 199,
-  winpoints: 199
-}
+let points = document.getElementById("points");
 
-/* allEnemies array, that will be filled with the enemies*/
+/* allEnemies array, that will be filled with the enemies objects*/
 var allEnemies = [];
+/*populate allEnemies*/
 allEnemies = createEnemies(5);
+/*create a player object*/
 var player = new Player();
 
-// Enemies our player must avoid
-
-function Enemy(speed, posY){
-  // Variables applied to each of our instances go here,
-  // we've provided one for you to get started
+/* enemy constructor*/
+function Enemy(speed, x, y){
+  /*every enemy has speed, x- and y- coordinate* and "image"*/
   this.speed = speed;
-  this.x = -200;
-  this.y = posY;
-  // The image/sprite for our enemies, this uses
-  // a helper we've provided to easily load images
+  this.x = x;
+  this.y = y;
+  /* Image for all enemies*/
   this.sprite = 'images/enemy-bug.png';
 }
 
+/*function that calls the enemy constructor*/
 function createEnemies(num) {
+  let speed, x, y;
+  /* for loop runs as many times there should be enemies (num)*/
   for(let i = 0; i < num; i++){
-    let enemy = new Enemy(50, 100);
+    /*create randoms returns speed, x and y and they are set in one go*/
+    [speed, x, y] = createRandoms();
+    /* lets use the random values to create an enemy*/
+    let enemy = new Enemy(speed, x, y);
     allEnemies.push(enemy);
   }
   return allEnemies;
 }
 
-/*when enemy is over the border, randomize new values*/
-function createRandomPosYX(){
-  return [-100, 300];
+/*randomize new values for new enemy and when the enemy is over the "border"*/
+function createRandoms(){
+  /* x will be negative, so the enemy does not show up immediately*/
+  let randomX = -50 - Math.floor(Math.random()*300);
+  /* we do not want enemies on the grass or on the "river"*/
+  let randomY = 50 + Math.floor(Math.random() * 150);
+  /* speed should be over 50, but not over 450*/
+  let randomSpeed = 50 + Math.floor(Math.random()*400);
+  /*when returned in array, values can be set directly to multiple variables, when they are in array*/
+  return [randomSpeed, randomX, randomY];
 }
 
-function didIWin(x,y){
-
-}
-
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
+/*Update the enemy's position
+Parameter: dt, a time delta between ticks*/
 Enemy.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
+
     if(this.x < 500){
     this.x = this.x + (this.speed * dt);
   }
     //check for going off canvas, "reset" enemy with new x and y inside the borders.
     if(this.x > 500){
-      [this.x, this.y] = createRandomPosYX();
+      [this.speed, this.x, this.y] = createRandoms();
     }
+    /* check collision*/
 }
 
-// Draw the enemy on the screen, required method for game
+/* Draw the enemy on the screen */
 Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
+
 function Player(){
-  //Replace x and y with proper "location" values
+
     this.x = 200;
     this.y = 400;
-    /*startY (players starty)
-    startX (players start x)*/
     this.sprite = 'images/char-cat-girl.png';
     //For the "scoreBoard"
     this.lives = 3;
@@ -98,8 +89,15 @@ Player.prototype.update = function(){
       this.y = 440;
     }
 
-    else if(this.y < -10) {
-      this.y = -10;
+    else if(this.y < 0) {
+      this.y = 0;
+    }
+
+    if(this.y <= 0){
+      this.x = 200;
+      this.y = 400;
+      this.points+=200;
+      this.updateScores();
     }
 };
 
@@ -132,9 +130,9 @@ default:
 }
 };
 
-Player.prototype.checkCollisions = function(){
-  //Compare players "location" to enemies' location on allEnemies array.
-};
+Player.prototype.updateScores = function(){
+    points.textContent = this.points;
+}
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.

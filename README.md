@@ -19,7 +19,7 @@ $ git clone https://github.com/winterroad/udacity-fend-retro-arcade-game.git
 
 OR
 
-1. Play live[https://winterroad.github.io/udacity-fend-retro-arcade-game]
+1. [Play live](https://winterroad.github.io/arcade-game/)
 (IE not supported)
 
 ## How to play
